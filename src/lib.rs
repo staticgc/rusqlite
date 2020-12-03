@@ -124,6 +124,9 @@ mod version;
 #[cfg(feature = "vtab")]
 pub mod vtab;
 
+#[cfg(feature = "vfs")]
+pub mod vfs;
+
 pub(crate) mod util;
 pub(crate) use util::SmallCString;
 

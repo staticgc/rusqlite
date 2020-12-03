@@ -32,6 +32,9 @@ pub enum Error {
     /// Error converting a string to UTF-8.
     Utf8Error(str::Utf8Error),
 
+    /// Error when general IO error (std::io::Error)
+    IOError(std::io::Error),
+
     /// Error converting a string to a C-compatible string because it contained
     /// an embedded nul.
     NulError(::std::ffi::NulError),
@@ -179,6 +182,13 @@ impl From<::std::ffi::NulError> for Error {
     }
 }
 
+impl From<std::io::Error> for Error {
+    #[cold]
+    fn from(err: std::io::Error) -> Error {
+        Error::IOError(err)
+    }
+}
+
 const UNKNOWN_COLUMN: usize = std::usize::MAX;
 
 /// The conversion isn't precise, but it's convenient to have it
@@ -234,6 +244,7 @@ impl fmt::Display for Error {
                 }
             }
             Error::Utf8Error(ref err) => err.fmt(f),
+            Error::IOError(ref err) => err.fmt(f),
             Error::NulError(ref err) => err.fmt(f),
             Error::InvalidParameterName(ref name) => write!(f, "Invalid parameter name: {}", name),
             Error::InvalidPath(ref p) => write!(f, "Invalid path: {}", p.to_string_lossy()),
@@ -286,6 +297,7 @@ impl error::Error for Error {
         match *self {
             Error::SqliteFailure(ref err, _) => Some(err),
             Error::Utf8Error(ref err) => Some(err),
+            Error::IOError(ref err) => Some(err),
             Error::NulError(ref err) => Some(err),
 
             Error::IntegralValueOutOfRange(..)
